@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Unlocker - Selectable Text</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+            max-width: 700px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+            font-size: 2.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #00c853, #00e676);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .method-info {
+            background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+            border: 2px solid #81c784;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .method-info .icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .method-info h3 {
+            color: #2e7d32;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .method-info p {
+            color: #558b2f;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .upload-area {
+            border: 3px dashed #90caf9;
+            border-radius: 16px;
+            padding: 50px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #f8fbff, #f0f7ff);
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            background: linear-gradient(135deg, #e3f2fd, #e8f5e9);
+            border-color: #42a5f5;
+            transform: scale(1.01);
+        }
+
+        .upload-area.dragover {
+            background: linear-gradient(135deg, #bbdefb, #c8e6c9);
+            border-color: #1e88e5;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #444;
+            font-size: 1.15rem;
+            font-weight: 500;
+        }
+
+        .upload-hint {
+            color: #888;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-info {
+            background: linear-gradient(135deg, #f5f5f5, #eeeeee);
+            padding: 18px 22px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+            border-left: 4px solid #42a5f5;
+        }
+
+        .file-info.show {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: bold;
+            color: #333;
+            word-break: break-all;
+            font-size: 1rem;
+        }
+
+        .file-size {
+            color: #666;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        .remove-file {
+            background: #ef5350;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .remove-file:hover {
+            background: #d32f2f;
+            transform: scale(1.1);
+        }
+
+        .restrictions-info {
+            background: linear-gradient(135deg, #fff8e1, #fff3e0);
+            border: 1px solid #ffcc80;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .restrictions-info h3 {
+            color: #e65100;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .restriction-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .restriction-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .restriction-item .icon {
+            color: #43a047;
+            font-weight: bold;
+        }
+
+        .options-section {
+            background: #fafafa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .options-section h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .option-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .option-label {
+            color: #555;
+            font-size: 0.9rem;
+            min-width: 130px;
+        }
+
+        .option-input {
+            flex: 1;
+            padding: 12px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+        }
+
+        .option-input:focus {
+            outline: none;
+            border-color: #42a5f5;
+        }
+
+        .slider-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .quality-slider {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            -webkit-appearance: none;
+            background: linear-gradient(to right, #ffeb3b, #4caf50, #2196f3);
+        }
+
+        .quality-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #2196f3;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .quality-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #2196f3;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .quality-value {
+            min-width: 70px;
+            text-align: center;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .quality-hint {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .unlock-btn {
+            width: 100%;
+            padding: 18px 30px;
+            background: linear-gradient(135deg, #43a047 0%, #66bb6a 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.15rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 4px 15px rgba(67, 160, 71, 0.3);
+        }
+
+        .unlock-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(67, 160, 71, 0.4);
+        }
+
+        .unlock-btn:disabled {
+            background: linear-gradient(135deg, #bdbdbd, #9e9e9e);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .progress-container {
+            display: none;
+            margin-top: 25px;
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .progress-container.show {
+            display: block;
+        }
+
+        .progress-bar {
+            height: 14px;
+            background: #e0e0e0;
+            border-radius: 7px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #43a047, #66bb6a);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 7px;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 12px;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .progress-percent {
+            text-align: center;
+            margin-top: 5px;
+            color: #43a047;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .success-message {
+            display: none;
+            background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+            border: 2px solid #66bb6a;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .success-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .success-message h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+            font-size: 1.4rem;
+        }
+
+        .success-message p {
+            color: #388e3c;
+            margin-bottom: 15px;
+        }
+
+        .success-features {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .success-feature {
+            background: white;
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+            font-weight: 500;
+        }
+
+        .unlock-another {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: #43a047;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .unlock-another:hover {
+            background: #388e3c;
+        }
+
+        .error-message {
+            display: none;
+            background: linear-gradient(135deg, #ffebee, #fce4ec);
+            border: 2px solid #ef5350;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .error-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .error-message h3 {
+            color: #c62828;
+            margin-bottom: 10px;
+        }
+
+        .error-message p {
+            color: #d32f2f;
+        }
+
+        .try-again {
+            margin-top: 15px;
+            padding: 10px 25px;
+            background: #ef5350;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .try-again:hover {
+            background: #d32f2f;
+        }
+
+        .note {
+            background: linear-gradient(135deg, #e8eaf6, #e3f2fd);
+            border: 1px solid #9fa8da;
+            border-radius: 12px;
+            padding: 18px;
+            margin-top: 25px;
+            font-size: 0.85rem;
+            color: #3949ab;
+        }
+
+        .note strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #1a237e;
+            font-size: 0.95rem;
+        }
+
+        .note ul {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+
+        .note li {
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 25px;
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: #666;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        #renderCanvas {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 1.7rem;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .restriction-list {
+                grid-template-columns: 1fr;
+            }
+
+            .option-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .option-label {
+                margin-bottom: 8px;
+            }
+
+            .slider-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .success-features {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .upload-area {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔓 PDF Unlocker <span class="badge">Pro</span></h1>
+        <p class="subtitle">Remove all restrictions & keep text selectable and copyable!</p>
+
+        <div class="method-info">
+            <div class="icon">📝</div>
+            <h3>Text + Image Method</h3>
+            <p>Creates a PDF with both the visual appearance AND a selectable text layer.<br>You can select and copy all
+                text while the document looks exactly like the original.</p>
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📄</div>
+            <p class="upload-text">Click or drag & drop your locked PDF here</p>
+            <p class="upload-hint">All processing is done locally - files never leave your computer</p>
+        </div>
+        <input type="file" id="fileInput" accept=".pdf">
+
+        <div class="file-info" id="fileInfo">
+            <div class="file-details">
+                <div class="file-name" id="fileName"></div>
+                <div class="file-size" id="fileSize"></div>
+            </div>
+            <button class="remove-file" id="removeFile" title="Remove file">×</button>
+        </div>
+
+        <div class="restrictions-info">
+            <h3>🔓 All these restrictions will be removed:</h3>
+            <div class="restriction-list">
+                <div class="restriction-item"><span class="icon">✓</span><span>Commenting</span></div>
+                <div class="restriction-item"><span class="icon">✓</span><span>Content Copying</span></div>
+                <div class="restriction-item"><span class="icon">✓</span><span>Accessibility</span></div>
+                <div class="restriction-item"><span class="icon">✓</span><span>Editing Content</span></div>
+                <div class="restriction-item"><span class="icon">✓</span><span>Filling Forms</span></div>
+                <div class="restriction-item"><span class="icon">✓</span><span>Printing</span></div>
+                <div class="restriction-item"><span class="icon">✓</span><span>Signing</span></div>
+                <div class="restriction-item"><span class="icon">✓</span><span>Document Assembly</span></div>
+            </div>
+        </div>
+
+        <div class="options-section">
+            <h4>⚙️ Options</h4>
+            <div class="option-row">
+                <span class="option-label">Password (if any):</span>
+                <input type="password" id="pdfPassword" class="option-input"
+                    placeholder="Enter if PDF needs password to open">
+            </div>
+            <div class="option-row">
+                <span class="option-label">Quality (DPI):</span>
+                <div class="slider-container">
+                    <input type="range" class="quality-slider" id="qualitySlider" min="100" max="300" value="200">
+                    <span class="quality-value" id="dpiValue">200 DPI</span>
+                </div>
+            </div>
+            <p class="quality-hint">Higher DPI = Better quality but larger file size. 200 DPI is recommended.</p>
+        </div>
+
+        <button class="unlock-btn" id="unlockBtn" disabled>
+            <span>🔓</span>
+            <span>Unlock PDF & Keep Text Selectable</span>
+        </button>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p class="progress-text" id="progressText">Processing...</p>
+            <p class="progress-percent" id="progressPercent">0%</p>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            <div class="success-icon">✅</div>
+            <h3>PDF Unlocked Successfully!</h3>
+            <p>Your PDF has been unlocked and downloaded.</p>
+            <div class="success-features">
+                <span class="success-feature">✓ Text Selectable</span>
+                <span class="success-feature">✓ Text Copyable</span>
+                <span class="success-feature">✓ Fully Editable</span>
+                <span class="success-feature">✓ Printable</span>
+            </div>
+            <button class="unlock-another" id="unlockAnother">Unlock Another PDF</button>
+        </div>
+
+        <div class="error-message" id="errorMessage">
+            <div class="error-icon">❌</div>
+            <h3>Error</h3>
+            <p id="errorText">Something went wrong.</p>
+            <button class="try-again" id="tryAgain">Try Again</button>
+        </div>
+
+        <div class="note">
+            <strong>💡 How it works:</strong>
+            <ul>
+                <li>The PDF is rendered as high-quality images to preserve exact appearance</li>
+                <li>Text is extracted and overlaid as an invisible layer for selectability</li>
+                <li>The result is a fully unlocked PDF where you can select and copy text</li>
+                <li>All processing happens in your browser - your files stay private</li>
+            </ul>
+        </div>
+
+        <footer>
+            🔒 100% Private - All processing happens in your browser
+        </footer>
+    </div>
+
+    <canvas id="renderCanvas"></canvas>
+
+    <script>
+        // Initialize PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        const { PDFDocument, rgb, StandardFonts } = PDFLib;
+
+        // DOM Elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const removeFile = document.getElementById('removeFile');
+        const unlockBtn = document.getElementById('unlockBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const progressPercent = document.getElementById('progressPercent');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        const pdfPassword = document.getElementById('pdfPassword');
+        const qualitySlider = document.getElementById('qualitySlider');
+        const dpiValue = document.getElementById('dpiValue');
+        const unlockAnother = document.getElementById('unlockAnother');
+        const tryAgain = document.getElementById('tryAgain');
+        const renderCanvas = document.getElementById('renderCanvas');
+
+        let selectedFile = null;
+
+        // Quality slider
+        qualitySlider.addEventListener('input', (e) => {
+            dpiValue.textContent = e.target.value + ' DPI';
+        });
+
+        // Upload handlers
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        // Remove file button
+        removeFile.addEventListener('click', () => {
+            selectedFile = null;
+            fileInput.value = '';
+            fileInfo.classList.remove('show');
+            unlockBtn.disabled = true;
+            hideMessages();
+        });
+
+        // Unlock another button
+        unlockAnother.addEventListener('click', () => {
+            selectedFile = null;
+            fileInput.value = '';
+            fileInfo.classList.remove('show');
+            unlockBtn.disabled = true;
+            hideMessages();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Try again button
+        tryAgain.addEventListener('click', () => {
+            hideMessages();
+            if (selectedFile) {
+                unlockBtn.disabled = false;
+            }
+        });
+
+        function handleFile(file) {
+            if (file.type !== 'application/pdf') {
+                showError('Please select a valid PDF file.');
+                return;
+            }
+            if (file.size > 100 * 1024 * 1024) {
+                showError('File size exceeds 100MB limit.');
+                return;
+            }
+            selectedFile = file;
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.classList.add('show');
+            unlockBtn.disabled = false;
+            hideMessages();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' bytes';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+
+        // Unlock button
+        unlockBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            unlockBtn.disabled = true;
+            progressContainer.classList.add('show');
+            hideMessages();
+
+            try {
+                await unlockPDF();
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message || 'Failed to process PDF. Please check if the password is correct.');
+                progressContainer.classList.remove('show');
+                unlockBtn.disabled = false;
+            }
+        });
+
+        // Main unlock function
+        async function unlockPDF() {
+            updateProgress(2, 'Reading PDF file...');
+
+            const arrayBuffer = await selectedFile.arrayBuffer();
+            const password = pdfPassword.value || '';
+
+            updateProgress(5, 'Loading PDF...');
+
+            // Load PDF with pdf.js
+            let pdf;
+            try {
+                pdf = await pdfjsLib.getDocument({
+                    data: arrayBuffer,
+                    password: password
+                }).promise;
+            } catch (e) {
+                if (e.name === 'PasswordException') {
+                    throw new Error('This PDF requires a password to open. Please enter the correct password.');
+                }
+                throw new Error('Failed to load PDF: ' + e.message);
+            }
+
+            const numPages = pdf.numPages;
+            updateProgress(8, `Loaded ${numPages} page${numPages > 1 ? 's' : ''}. Starting processing...`);
+
+            const scale = parseInt(qualitySlider.value) / 72;
+            const ctx = renderCanvas.getContext('2d');
+
+            // Create new PDF document
+            const newPdfDoc = await PDFDocument.create();
+
+            // Embed fonts for text layer
+            const helveticaFont = await newPdfDoc.embedFont(StandardFonts.Helvetica);
+            const helveticaBold = await newPdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+            for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+                const progressPercent = 8 + ((pageNum - 1) / numPages) * 85;
+                updateProgress(progressPercent, `Processing page ${pageNum} of ${numPages}...`);
+
+                const page = await pdf.getPage(pageNum);
+                const viewport = page.getViewport({ scale: 1 });
+                const scaledViewport = page.getViewport({ scale: scale });
+
+                // Render page to canvas at high resolution
+                renderCanvas.width = scaledViewport.width;
+                renderCanvas.height = scaledViewport.height;
+
+                // Clear canvas with white background
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, renderCanvas.width, renderCanvas.height);
+
+                await page.render({
+                    canvasContext: ctx,
+                    viewport: scaledViewport
+                }).promise;
+
+                // Get image data as JPEG
+                const imgData = renderCanvas.toDataURL('image/jpeg', 0.92);
+                const imgBytes = await fetch(imgData).then(res => res.arrayBuffer());
+                const img = await newPdfDoc.embedJpg(imgBytes);
+
+                // Create new page with correct dimensions
+                const newPage = newPdfDoc.addPage([viewport.width, viewport.height]);
+
+                // Draw image as background (full page)
+                newPage.drawImage(img, {
+                    x: 0,
+                    y: 0,
+                    width: viewport.width,
+                    height: viewport.height,
+                });
+
+                // Extract text content for selectable text layer
+                const textContent = await page.getTextContent();
+
+                // Add text layer (nearly invisible but selectable)
+                for (const item of textContent.items) {
+                    if (item.str && item.str.trim()) {
+                        const tx = item.transform;
+                        const x = tx[4];
+                        const y = tx[5];
+
+                        // Calculate font size from transform matrix
+                        const fontSize = Math.sqrt(tx[0] * tx[0] + tx[1] * tx[1]);
+
+                        // Skip very small text
+                        if (fontSize < 1) continue;
+
+                        try {
+                            // Sanitize text - remove characters that can't be encoded
+                            const sanitizedText = sanitizeText(item.str);
+
+                            if (sanitizedText) {
+                                newPage.drawText(sanitizedText, {
+                                    x: x,
+                                    y: y,
+                                    size: fontSize > 0 ? fontSize : 12,
+                                    font: helveticaFont,
+                                    color: rgb(0, 0, 0),
+                                    opacity: 0.01, // Nearly invisible but selectable
+                                });
+                            }
+                        } catch (e) {
+                            // Skip characters that can't be encoded in WinAnsi
+                            continue;
+                        }
+                    }
+                }
+            }
+
+            updateProgress(94, 'Finalizing PDF...');
+
+            // Set metadata
+            newPdfDoc.setTitle(selectedFile.name.replace('.pdf', ' (Unlocked)'));
+            newPdfDoc.setProducer('PDF Unlocker Pro');
+            newPdfDoc.setCreator('PDF Unlocker Pro');
+            newPdfDoc.setCreationDate(new Date());
+            newPdfDoc.setModificationDate(new Date());
+
+            updateProgress(96, 'Generating unlocked PDF...');
+
+            const pdfBytes = await newPdfDoc.save();
+
+            updateProgress(98, 'Preparing download...');
+
+            downloadPdf(pdfBytes);
+
+            updateProgress(100, 'Complete!');
+
+            setTimeout(() => {
+                progressContainer.classList.remove('show');
+                showSuccess();
+            }, 500);
+        }
+
+        // Sanitize text for WinAnsi encoding
+        function sanitizeText(text) {
+            // Remove or replace characters not in WinAnsi encoding
+            let result = '';
+            for (let i = 0; i < text.length; i++) {
+                const code = text.charCodeAt(i);
+                // Basic Latin and Latin-1 Supplement (with some exceptions)
+                if ((code >= 32 && code <= 126) || (code >= 160 && code <= 255)) {
+                    result += text[i];
+                } else if (code === 8217 || code === 8216) {
+                    // Smart quotes to regular quotes
+                    result += "'";
+                } else if (code === 8220 || code === 8221) {
+                    result += '"';
+                } else if (code === 8211 || code === 8212) {
+                    result += '-';
+                } else if (code === 8230) {
+                    result += '...';
+                } else {
+                    // Replace other characters with space
+                    result += ' ';
+                }
+            }
+            return result.trim();
+        }
+
+        // Download PDF
+        function downloadPdf(pdfBytes) {
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = selectedFile.name.replace('.pdf', '_unlocked.pdf');
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Update progress
+        function updateProgress(percent, text) {
+            progressFill.style.width = percent + '%';
+            progressText.textContent = text;
+            progressPercent.textContent = Math.round(percent) + '%';
+        }
+
+        // Show success message
+        function showSuccess() {
+            successMessage.classList.add('show');
+            errorMessage.classList.remove('show');
+            unlockBtn.disabled = true;
+        }
+
+        // Show error message
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.add('show');
+            successMessage.classList.remove('show');
+        }
+
+        // Hide all messages
+        function hideMessages() {
+            successMessage.classList.remove('show');
+            errorMessage.classList.remove('show');
+        }
+    </script>
+</body>
+
+</html>
